@@ -8,27 +8,31 @@ export default async function cartToOrderMetadataHandler({
     event: { data },
     container,
 }: SubscriberArgs<{ id: string }>) {
+    const query = container.resolve("query")
     const orderModuleService = container.resolve("order")
-    const cartModuleService = container.resolve("cart")
 
-    // Obtener la orden recién creada
-    const order = await orderModuleService.retrieve(data.id)
+    // Obtener la orden con su carrito vinculado usando Query
+    const { data: [order] } = await query.graph({
+        entity: "order",
+        fields: ["id", "metadata", "cart.metadata", "cart.id"],
+        filters: { id: data.id }
+    })
 
-    // Obtener el carrito original
-    if (!order.cart_id) {
+    if (!order || !order.cart) {
         return
     }
 
-    const cart = await cartModuleService.retrieve(order.cart_id)
+    const cart = order.cart
 
     // Si el carrito tiene metadata, transferirla a la orden
     if (cart.metadata && Object.keys(cart.metadata).length > 0) {
-        await orderModuleService.update(order.id, {
+        await orderModuleService.updateOrders([{
+            id: order.id,
             metadata: {
                 ...order.metadata,
                 ...cart.metadata,
             },
-        })
+        }])
 
         console.log(
             `[Metadata Transfer] Transferida metadata de cart ${cart.id} a order ${order.id}`,
@@ -36,6 +40,7 @@ export default async function cartToOrderMetadataHandler({
         )
     }
 }
+
 
 export const config: SubscriberConfig = {
     event: "order.placed",

@@ -10,8 +10,8 @@ export default async function colombiaAddressHandler({
 }: SubscriberArgs<{ id: string }>) {
     const cartModuleService = container.resolve("cart")
 
-    const cart = await cartModuleService.retrieve(data.id, {
-        relations: ["shipping_address"],
+    const cart = await cartModuleService.retrieveCart(data.id, {
+        select: ["id", "shipping_address.*"],
     })
 
     // Solo procesar si hay dirección de envío
@@ -26,9 +26,10 @@ export default async function colombiaAddressHandler({
         address.country_code?.toLowerCase() === "co" &&
         (!address.postal_code || address.postal_code.trim() === "")
     ) {
-        await cartModuleService.updateAddresses(address.id, {
+        await cartModuleService.updateAddresses([{
+            id: address.id,
             postal_code: "000000",
-        })
+        }])
 
         console.log(
             `[Colombia Handler] Auto-inyectado código postal para cart ${cart.id}`

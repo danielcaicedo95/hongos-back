@@ -34,14 +34,18 @@ export const POST = async (
     // Actualizar el carrito con la metadata
     const cartModuleService = req.scope.resolve("cart")
 
-    const cart = await cartModuleService.retrieve(id)
+    const cart = await cartModuleService.retrieveCart(id)
 
-    const updatedCart = await cartModuleService.update(id, {
+    const updatedCarts = await cartModuleService.updateCarts([{
+        id,
         metadata: {
             ...cart.metadata,
             ...metadata,
         },
-    })
+    }])
+
+    const updatedCart = updatedCarts[0] || updatedCarts
+
 
     res.status(200).json({ cart: updatedCart })
 }

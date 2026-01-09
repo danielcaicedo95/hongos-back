@@ -25,7 +25,7 @@ export default defineConfig({
               publicKey: process.env.WOMPI_PUB_KEY,
               privateKey: process.env.WOMPI_PRV_KEY,
               integritySecret: process.env.WOMPI_INTEGRITY_SECRET,
-              testMode: true,
+              testMode: process.env.WOMPI_TEST_MODE === "true",
             },
           },
         ],
