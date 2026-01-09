@@ -1,0 +1,177 @@
+import { defineWidgetConfig } from "@medusajs/admin-sdk"
+import { Container, Heading, Button, Input, toast } from "@medusajs/ui"
+import { DetailWidgetProps, AdminCollection } from "@medusajs/framework/types"
+import { useState } from "react"
+import { useQueryClient } from "@tanstack/react-query"
+
+// Helper for requests - Assuming backend is on localhost:9000
+const BASE_URL = "http://localhost:9000"
+
+const CollectionMediaWidget = ({
+    data: collection
+}: DetailWidgetProps<AdminCollection>) => {
+    const [file, setFile] = useState<File | null>(null)
+    const [uploading, setUploading] = useState(false)
+    const queryClient = useQueryClient()
+
+    // Current image from metadata
+    const currentImage = (collection.metadata?.image as string) || null
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            setFile(e.target.files[0])
+        }
+    }
+
+    const handleUpload = async () => {
+        if (!file) return
+
+        setUploading(true)
+        try {
+            // 1. Upload file
+            const formData = new FormData()
+            formData.append("files", file)
+
+            // Using fetch with credentials to include session cookies
+            const uploadReq = await fetch(`${BASE_URL}/admin/uploads`, {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    // Content-Type is set automatically with FormData
+                },
+                body: formData,
+            })
+
+            // Handle Medusa V2 files response or V1
+            if (!uploadReq.ok) {
+                const err = await uploadReq.json()
+                console.error("Upload error:", err)
+                throw new Error("Failed to upload")
+            }
+
+            const uploadRes = await uploadReq.json()
+
+            // Medusa V2 '/admin/uploads' usually returns { files: [...] }
+            const imageUrl = uploadRes.files?.[0]?.url
+
+            if (!imageUrl) {
+                // Try fallback format if different
+                console.log("Upload response:", uploadRes)
+                throw new Error("No URL returned from upload")
+            }
+
+            // 2. Update Collection Metadata
+            const updateReq = await fetch(`${BASE_URL}/admin/collections/${collection.id}`, {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    metadata: {
+                        ...collection.metadata,
+                        image: imageUrl
+                    }
+                })
+            })
+
+            if (!updateReq.ok) {
+                const err = await updateReq.json()
+                console.error("Update error:", err)
+                throw new Error("Failed to update collection")
+            }
+
+            toast.success("Image uploaded successfully")
+            setFile(null)
+
+            // Invalidate queries to refresh UI
+            // The key might differ based on Medusa version, but invalidating 'product_collections' is safe
+            queryClient.invalidateQueries({ queryKey: [['product_collections']] })
+            queryClient.invalidateQueries({ queryKey: [['product_collections', 'detail', collection.id]] })
+
+            // Force reload to be sure
+            window.location.reload()
+
+        } catch (error) {
+            console.error(error)
+            toast.error("Failed to upload image. Check console for details.")
+        } finally {
+            setUploading(false)
+        }
+    }
+
+    const handleRemove = async () => {
+        if (!confirm("Are you sure you want to remove the image?")) return
+
+        try {
+            const updateReq = await fetch(`${BASE_URL}/admin/collections/${collection.id}`, {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    metadata: {
+                        ...collection.metadata,
+                        image: null
+                    }
+                })
+            })
+
+            if (!updateReq.ok) throw new Error("Failed")
+
+            toast.success("Image removed")
+            window.location.reload()
+        } catch (e) {
+            console.error(e)
+            toast.error("Failed to remove image")
+        }
+    }
+
+    return (
+        <Container className="p-8 border bg-white rounded-lg shadow-sm">
+            <Heading level="h2" className="mb-4 text-xl">Background Image</Heading>
+
+            <div className="flex flex-col gap-4">
+                {currentImage ? (
+                    <div className="relative w-full h-64 bg-gray-100 rounded-md overflow-hidden group">
+                        <img
+                            src={currentImage}
+                            alt="Collection background"
+                            className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <Button variant="danger" onClick={handleRemove}>Remove Image</Button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="w-full h-32 bg-gray-50 border-2 border-dashed border-gray-200 rounded-md flex items-center justify-center text-gray-400">
+                        No image selected
+                    </div>
+                )}
+
+                <div className="flex items-center gap-4 mt-2">
+                    <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="max-w-xs"
+                    />
+                    <Button
+                        disabled={!file || uploading}
+                        onClick={handleUpload}
+                        isLoading={uploading}
+                    >
+                        Save
+                    </Button>
+                </div>
+            </div>
+        </Container>
+    )
+}
+
+export const config = defineWidgetConfig({
+    zone: "product_collection.details.after",
+})
+
+export default CollectionMediaWidget
