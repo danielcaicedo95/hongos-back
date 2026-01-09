@@ -13,8 +13,7 @@
     "medusa"
   ],
   "scripts": {
-    "build": "tsc",
-    "build:medusa": "medusa build --admin",
+    "build": "medusa build --admin",
     "seed": "medusa exec ./src/scripts/seed.ts",
     "start": "medusa start",
     "dev": "medusa develop",
