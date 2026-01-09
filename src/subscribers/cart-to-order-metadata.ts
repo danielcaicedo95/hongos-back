@@ -1,4 +1,4 @@
-import { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
+import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 
 /**
  * Subscriber que transfiere metadata del carrito a la orden
