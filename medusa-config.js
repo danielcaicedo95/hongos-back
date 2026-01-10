@@ -23,6 +23,7 @@ module.exports = defineConfig({
     },
     admin: {
         disable: false,
+        path: "/app", // Path por defecto para el dashboard en Medusa v2
         ...(process.env.MEDUSA_ADMIN_BACKEND_URL && {
             backendUrl: process.env.MEDUSA_ADMIN_BACKEND_URL,
         }),
