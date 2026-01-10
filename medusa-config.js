@@ -1,8 +1,20 @@
-const { loadEnv } = require("@medusajs/framework/utils")
+const { loadEnv, defineConfig } = require("@medusajs/framework/utils")
 
 loadEnv(process.env.NODE_ENV || "development", process.cwd())
 
-module.exports = {
+// --- LOGS DE DIAGNÓSTICO PARA RENDER ---
+console.log("-----------------------------------------")
+console.log("DIAGNÓSTICO DE DESPLIEGUE:")
+console.log("NODE_ENV:", process.env.NODE_ENV)
+console.log("DATABASE_URL detectada:", !!process.env.DATABASE_URL)
+if (process.env.DATABASE_URL) {
+    console.log("DATABASE_URL comienza con:", process.env.DATABASE_URL.substring(0, 15) + "...")
+}
+console.log("REDIS_URL detectada:", !!process.env.REDIS_URL)
+console.log("WOMPI_PUB_KEY detectada:", !!process.env.WOMPI_PUB_KEY)
+console.log("-----------------------------------------")
+
+module.exports = defineConfig({
     projectConfig: {
         databaseUrl: process.env.DATABASE_URL,
         redisUrl: process.env.REDIS_URL,
@@ -16,12 +28,15 @@ module.exports = {
     },
     admin: {
         disable: false,
+        // Usamos una carpeta no oculta para evitar problemas con el despliegue de Render
+        outDir: "build-admin",
         ...(process.env.MEDUSA_ADMIN_BACKEND_URL && {
             backendUrl: process.env.MEDUSA_ADMIN_BACKEND_URL,
         }),
     },
-    modules: [
-        {
+    modules: {
+        // En Medusa v2, 'payment' es un objeto, no un elemento de un array
+        payment: {
             resolve: "@medusajs/medusa/payment",
             options: {
                 providers: [
@@ -38,5 +53,5 @@ module.exports = {
                 ],
             },
         },
-    ],
-}
+    },
+})
