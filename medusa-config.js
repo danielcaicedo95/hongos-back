@@ -1,6 +1,13 @@
+const path = require("path")
 const { loadEnv, defineConfig } = require("@medusajs/framework/utils")
 
 loadEnv(process.env.NODE_ENV || "development", process.cwd())
+
+// En producción (Render), el código compilado vive en .medusa/server
+const isProd = process.env.NODE_ENV === "production"
+const wompiModulePath = isProd
+    ? path.resolve(__dirname, ".medusa", "server", "src", "modules", "wompi-payment")
+    : path.resolve(__dirname, "src", "modules", "wompi-payment")
 
 module.exports = defineConfig({
     projectConfig: {
@@ -26,7 +33,7 @@ module.exports = defineConfig({
             options: {
                 providers: [
                     {
-                        resolve: "./modules/wompi-payment",
+                        resolve: wompiModulePath,
                         id: "wompi",
                         options: {
                             publicKey: process.env.WOMPI_PUB_KEY,
