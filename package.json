@@ -14,7 +14,7 @@
     "medusa"
   ],
   "scripts": {
-    "build": "npm run clean && medusa build",
+    "build": "echo 'DIRECTORY CONTENT:' && ls -la && echo 'PWD:' && pwd && npm run clean && medusa build",
     "clean": "rm -rf .medusa/server .medusa/admin build-admin",
     "seed": "medusa exec ./src/scripts/seed.ts",
     "start": "medusa start",

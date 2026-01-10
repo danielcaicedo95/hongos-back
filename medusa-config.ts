@@ -6,6 +6,8 @@ loadEnv(process.env.NODE_ENV || "development", process.cwd())
 console.log("-----------------------------------------")
 console.log("DIAGNÓSTICO DE DESPLIEGUE (ESM):")
 console.log("NODE_ENV:", process.env.NODE_ENV)
+console.log("CWD:", process.cwd())
+console.log("FILENAME:", import.meta.url)
 console.log("DATABASE_URL detectada:", !!process.env.DATABASE_URL)
 if (process.env.DATABASE_URL) {
   console.log("DATABASE_URL comienza con:", process.env.DATABASE_URL.substring(0, 15) + "...")
