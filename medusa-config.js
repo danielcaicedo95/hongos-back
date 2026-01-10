@@ -26,7 +26,7 @@ module.exports = defineConfig({
             options: {
                 providers: [
                     {
-                        resolve: "./src/modules/wompi-payment",
+                        resolve: "./modules/wompi-payment",
                         id: "wompi",
                         options: {
                             publicKey: process.env.WOMPI_PUB_KEY,
