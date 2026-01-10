@@ -22,3 +22,7 @@ build
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Medusa built artifacts
+.medusa
+build-admin

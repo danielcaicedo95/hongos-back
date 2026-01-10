@@ -1,13 +1,6 @@
-const path = require("path")
 const { loadEnv, defineConfig } = require("@medusajs/framework/utils")
 
 loadEnv(process.env.NODE_ENV || "development", process.cwd())
-
-// En producción (Render), el código compilado vive en .medusa/server
-const isProd = process.env.NODE_ENV === "production"
-const wompiModulePath = isProd
-    ? path.resolve(__dirname, ".medusa/server/src/modules/wompi-payment")
-    : path.resolve(__dirname, "src/modules/wompi-payment")
 
 module.exports = defineConfig({
     projectConfig: {
@@ -23,10 +16,9 @@ module.exports = defineConfig({
     },
     admin: {
         disable: false,
-        path: "/app", // Path por defecto para el dashboard en Medusa v2
-        ...(process.env.MEDUSA_ADMIN_BACKEND_URL && {
-            backendUrl: process.env.MEDUSA_ADMIN_BACKEND_URL,
-        }),
+        // Usamos una carpeta no oculta para evitar problemas con el despliegue de Render
+        outDir: "build-admin",
+        backendUrl: process.env.MEDUSA_ADMIN_BACKEND_URL,
     },
     modules: [
         {
@@ -34,7 +26,7 @@ module.exports = defineConfig({
             options: {
                 providers: [
                     {
-                        resolve: wompiModulePath, // Usar ruta absoluta para evitar MODULE_NOT_FOUND
+                        resolve: "./src/modules/wompi-payment",
                         id: "wompi",
                         options: {
                             publicKey: process.env.WOMPI_PUB_KEY,

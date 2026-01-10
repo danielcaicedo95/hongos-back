@@ -1,5 +1,3 @@
-module.exports = {
-    register: () => {
-        // register settings here
-    }
+exports.register = function () {
+    // instrumentation logic
 }
