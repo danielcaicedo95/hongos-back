@@ -2,6 +2,18 @@ import { loadEnv, defineConfig } from "@medusajs/framework/utils"
 
 loadEnv(process.env.NODE_ENV || "development", process.cwd())
 
+// --- LOGS DE DIAGNÓSTICO PARA RENDER (VERSIÓN ESM) ---
+console.log("-----------------------------------------")
+console.log("DIAGNÓSTICO DE DESPLIEGUE (ESM):")
+console.log("NODE_ENV:", process.env.NODE_ENV)
+console.log("DATABASE_URL detectada:", !!process.env.DATABASE_URL)
+if (process.env.DATABASE_URL) {
+  console.log("DATABASE_URL comienza con:", process.env.DATABASE_URL.substring(0, 15) + "...")
+}
+console.log("REDIS_URL detectada:", !!process.env.REDIS_URL)
+console.log("WOMPI_PUB_KEY detectada:", !!process.env.WOMPI_PUB_KEY)
+console.log("-----------------------------------------")
+
 export default defineConfig({
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
@@ -16,7 +28,7 @@ export default defineConfig({
   },
   admin: {
     disable: false,
-    // Eliminamos outDir personalizado para volver al estándar estable .medusa/admin
+    // Eliminamos outDir personalizado para evitar conflictos con el build estándar de Medusa v2
     ...(process.env.MEDUSA_ADMIN_BACKEND_URL && {
       backendUrl: process.env.MEDUSA_ADMIN_BACKEND_URL,
     }),
