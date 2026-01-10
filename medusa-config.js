@@ -1,3 +1,4 @@
+const path = require("path")
 const { loadEnv, defineConfig } = require("@medusajs/framework/utils")
 
 loadEnv(process.env.NODE_ENV || "development", process.cwd())
@@ -13,6 +14,14 @@ if (process.env.DATABASE_URL) {
 console.log("REDIS_URL detectada:", !!process.env.REDIS_URL)
 console.log("WOMPI_PUB_KEY detectada:", !!process.env.WOMPI_PUB_KEY)
 console.log("-----------------------------------------")
+
+const isProd = process.env.NODE_ENV === "production"
+// En producción (Render), el código compilado vive en .medusa/server/src/modules
+const wompiModulePath = isProd
+    ? path.resolve(__dirname, ".medusa", "server", "src", "modules", "wompi-payment")
+    : path.resolve(__dirname, "src", "modules", "wompi-payment")
+
+console.log("Ruta de Wompi resuelta:", wompiModulePath)
 
 module.exports = defineConfig({
     projectConfig: {
@@ -35,13 +44,12 @@ module.exports = defineConfig({
         }),
     },
     modules: {
-        // En Medusa v2, 'payment' es un objeto, no un elemento de un array
         payment: {
             resolve: "@medusajs/medusa/payment",
             options: {
                 providers: [
                     {
-                        resolve: "./src/modules/wompi-payment",
+                        resolve: wompiModulePath,
                         id: "wompi",
                         options: {
                             publicKey: process.env.WOMPI_PUB_KEY,
