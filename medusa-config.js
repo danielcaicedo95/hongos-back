@@ -29,7 +29,7 @@ export default defineConfig({
         },
     },
     admin: {
-        disable: process.env.NODE_ENV === "production",
+        disable: false,
         // Eliminamos outDir personalizado para evitar conflictos con el build estándar de Medusa v2
         ...(process.env.MEDUSA_ADMIN_BACKEND_URL && {
             backendUrl: process.env.MEDUSA_ADMIN_BACKEND_URL,
